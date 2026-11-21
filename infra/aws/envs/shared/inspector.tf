@@ -5,6 +5,7 @@ resource "aws_inspector2_enabler" "ecr" {
   resource_types = ["ECR"]
 }
 
+# Registry scanning is account-wide; scope it to this project so other repos in the account are untouched.
 resource "aws_ecr_registry_scanning_configuration" "this" {
   count = var.enable_inspector ? 1 : 0
 
@@ -14,7 +15,7 @@ resource "aws_ecr_registry_scanning_configuration" "this" {
     scan_frequency = "CONTINUOUS_SCAN"
 
     repository_filter {
-      filter      = "*"
+      filter      = var.app_name
       filter_type = "WILDCARD"
     }
   }

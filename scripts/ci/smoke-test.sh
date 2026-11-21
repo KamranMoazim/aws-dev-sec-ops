@@ -1,25 +1,23 @@
 #!/usr/bin/env bash
-# Usage: smoke-test.sh <base-url> <expected-commit>
-# Retries because the load balancer can briefly route to draining tasks of the previous version.
+# Usage: smoke-test.sh <base-url>
+# Checks the public endpoints; deployed image identity is verified separately (verify-ecs-deploy.sh).
 set -euo pipefail
 
 base_url="$1"
-expected_commit="$2"
-attempts=30
+attempts=12
 
 for attempt in $(seq 1 "$attempts"); do
-  commit="$(curl -fsS --max-time 5 "$base_url/" | sed -n 's/.*"commit":"\([^"]*\)".*/\1/p' || true)"
-  if [ "$commit" = "$expected_commit" ]; then
+  if curl -fsS --max-time 5 "$base_url/health" >/dev/null; then
     break
   fi
-  echo "Attempt $attempt/$attempts: got commit '${commit:-none}', want '$expected_commit'"
+  echo "Attempt $attempt/$attempts: /health not ready"
   if [ "$attempt" -eq "$attempts" ]; then
-    echo "Smoke test failed: commit never matched"
+    echo "Smoke test failed: /health never returned 200"
     exit 1
   fi
-  sleep 10
+  sleep 5
 done
 
-curl -fsS --max-time 5 "$base_url/health" >/dev/null
+curl -fsS --max-time 5 "$base_url/" | grep -Eq '"version":"[0-9]+\.[0-9]+\.[0-9]+'
 curl -fsS --max-time 5 "$base_url/items" | grep -q '"count"'
-echo "Smoke test passed for commit $expected_commit"
+echo "Smoke test passed for $base_url"

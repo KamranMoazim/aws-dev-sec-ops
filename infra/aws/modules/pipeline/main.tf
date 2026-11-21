@@ -145,6 +145,8 @@ resource "aws_codepipeline" "this" {
         ProjectName = aws_codebuild_project.smoke.name
         EnvironmentVariables = jsonencode([
           { name = "IMAGE_TAG", value = "#{Build.IMAGE_TAG}", type = "PLAINTEXT" },
+          { name = "ECS_CLUSTER", value = var.dev.cluster_name, type = "PLAINTEXT" },
+          { name = "ECS_SERVICE", value = var.dev.service_name, type = "PLAINTEXT" },
           { name = "APP_URL", value = var.dev.app_url, type = "PLAINTEXT" },
           { name = "IMAGE_TAG_PARAMETER", value = var.dev.image_tag_parameter_name, type = "PLAINTEXT" },
         ])
