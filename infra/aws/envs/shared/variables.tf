@@ -39,3 +39,20 @@ variable "dns_zone_name" {
   type        = string
   default     = null
 }
+
+variable "repository_id" {
+  description = "GitHub repository as owner/name."
+  type        = string
+}
+
+variable "dev_account_id" {
+  description = "Dev account ID. null means this account (single-account mode)."
+  type        = string
+  default     = null
+}
+
+variable "dev_app_url" {
+  description = "Dev base URL for smoke tests when no DNS zone is configured."
+  type        = string
+  default     = ""
+}

@@ -1,10 +1,6 @@
 node_modules
 coverage
-test
 .env
 .env.*
 Dockerfile
 .dockerignore
-eslint.config.js
-.prettierrc.json
-.prettierignore

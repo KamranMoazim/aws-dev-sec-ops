@@ -1,0 +1,8 @@
+version: 0.2
+
+phases:
+  build:
+    on-failure: ABORT
+    commands:
+      - scripts/ci/smoke-test.sh "$APP_URL" "$IMAGE_TAG"
+      - aws ssm put-parameter --name "$IMAGE_TAG_PARAMETER" --value "$IMAGE_TAG" --type String --overwrite

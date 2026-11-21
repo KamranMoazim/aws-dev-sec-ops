@@ -10,6 +10,10 @@ Node.js sample app.
 - Git branching and review rules: [docs/git-governance.md](docs/git-governance.md)
 - Architecture diagrams (ECS and EKS, draw.io sources included): [docs/architecture/](docs/architecture/)
 
+## CI/CD pipeline (as built)
+
+![CI/CD pipeline](docs/architecture/aws-cicd-pipeline-ecs.png)
+
 ## Dev environment network
 
 ![Dev network](docs/architecture/aws-dev-network-ecs.png)
