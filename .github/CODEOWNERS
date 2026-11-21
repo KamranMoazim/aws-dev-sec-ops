@@ -1,0 +1,4 @@
+# Solo mode: one owner for everything. When a team joins, switch to org teams
+# per path (see docs/git-governance.md). Later rules override earlier ones.
+
+*                   @KamranMoazim
