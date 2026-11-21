@@ -8,13 +8,13 @@ function fakeDb(items) {
 }
 
 describe('hello service', () => {
-  test('GET / returns service name, semantic version and commit', async () => {
-    const app = createApp({ db: fakeDb([]), version: '1.2.3', commit: 'abc1234' });
+  test('GET / returns service name and semantic version without build details', async () => {
+    const app = createApp({ db: fakeDb([]), version: '1.2.3' });
 
     const response = await request(app).get('/');
 
     expect(response.status).toBe(200);
-    expect(response.body).toEqual({ service: 'hello', version: '1.2.3', commit: 'abc1234' });
+    expect(response.body).toEqual({ service: 'hello', version: '1.2.3' });
   });
 
   test('GET /health returns ok', async () => {

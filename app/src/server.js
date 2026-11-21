@@ -14,7 +14,7 @@ async function start() {
     process.exit(1);
   }
 
-  const app = createApp({ db, version: config.version, commit: config.commit });
+  const app = createApp({ db, version: config.version });
   const server = app.listen(config.port, () => {
     logger.info('Server started', {
       port: config.port,

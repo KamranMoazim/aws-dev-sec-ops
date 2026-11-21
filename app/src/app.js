@@ -1,12 +1,12 @@
 const express = require('express');
 const logger = require('./logger');
 
-function createApp({ db, version, commit }) {
+function createApp({ db, version }) {
   const app = express();
   app.disable('x-powered-by');
 
   app.get('/', (req, res) => {
-    res.json({ service: 'hello', version, commit });
+    res.json({ service: 'hello', version });
   });
 
   app.get('/health', (req, res) => {

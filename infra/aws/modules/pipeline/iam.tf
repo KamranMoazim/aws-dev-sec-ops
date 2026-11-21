@@ -195,6 +195,18 @@ data "aws_iam_policy_document" "smoke" {
   ]
 
   statement {
+    sid       = "VerifyDeployment"
+    actions   = ["ecs:DescribeServices"]
+    resources = [var.dev.service_arn]
+  }
+
+  statement {
+    sid       = "ReadTaskDefinition"
+    actions   = ["ecs:DescribeTaskDefinition"]
+    resources = ["*"]
+  }
+
+  statement {
     sid       = "RecordReleasedTag"
     actions   = ["ssm:PutParameter"]
     resources = [var.dev.image_tag_parameter_arn]
