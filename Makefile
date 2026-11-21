@@ -23,3 +23,24 @@ down:
 
 smoke:
 	curl -fsS localhost:3000/health && echo && curl -fsS localhost:3000/items && echo
+
+ENV ?= dev
+TF_DIR = infra/aws/envs/$(ENV)
+
+.PHONY: tf-init tf-plan tf-apply tf-destroy tf-check
+
+tf-init:
+	terraform -chdir=$(TF_DIR) init -input=false -backend-config=../../backend.hcl
+
+tf-plan: tf-init
+	terraform -chdir=$(TF_DIR) plan -input=false -out=tfplan
+
+tf-apply:
+	terraform -chdir=$(TF_DIR) apply -input=false tfplan
+
+tf-destroy: tf-init
+	terraform -chdir=$(TF_DIR) destroy -input=false
+
+tf-check:
+	terraform fmt -check -recursive infra
+	docker run --rm -v "$$PWD/infra:/infra" bridgecrew/checkov:latest -d /infra --framework terraform --compact --quiet
