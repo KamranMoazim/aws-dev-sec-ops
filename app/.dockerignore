@@ -1,0 +1,11 @@
+node_modules
+coverage
+test
+db
+.env
+.env.*
+Dockerfile
+.dockerignore
+eslint.config.js
+.prettierrc.json
+.prettierignore
