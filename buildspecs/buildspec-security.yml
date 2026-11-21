@@ -1,0 +1,18 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.12
+    commands:
+      - scripts/security/install-tools.sh
+  build:
+    commands:
+      - scripts/security/scan-source.sh
+
+reports:
+  security-source:
+    base-directory: reports
+    files:
+      - '*.xml'
+    file-format: JUNITXML

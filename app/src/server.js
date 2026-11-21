@@ -14,9 +14,13 @@ async function start() {
     process.exit(1);
   }
 
-  const app = createApp({ db, version: config.version });
+  const app = createApp({ db, version: config.version, commit: config.commit });
   const server = app.listen(config.port, () => {
-    logger.info('Server started', { port: config.port, version: config.version });
+    logger.info('Server started', {
+      port: config.port,
+      version: config.version,
+      commit: config.commit,
+    });
   });
 
   // ECS sends SIGTERM on deploy/scale-in; drain in-flight requests before exit.

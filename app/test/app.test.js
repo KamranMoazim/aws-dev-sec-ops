@@ -1,19 +1,20 @@
 const request = require('supertest');
 const { createApp } = require('../src/app');
 const { loadConfig } = require('../src/config');
+const packageJson = require('../package.json');
 
 function fakeDb(items) {
   return { listItems: jest.fn().mockResolvedValue(items) };
 }
 
 describe('hello service', () => {
-  test('GET / returns service name and version', async () => {
-    const app = createApp({ db: fakeDb([]), version: 'abc123' });
+  test('GET / returns service name, semantic version and commit', async () => {
+    const app = createApp({ db: fakeDb([]), version: '1.2.3', commit: 'abc1234' });
 
     const response = await request(app).get('/');
 
     expect(response.status).toBe(200);
-    expect(response.body).toEqual({ service: 'hello', version: 'abc123' });
+    expect(response.body).toEqual({ service: 'hello', version: '1.2.3', commit: 'abc1234' });
   });
 
   test('GET /health returns ok', async () => {
@@ -60,19 +61,29 @@ describe('hello service', () => {
 });
 
 describe('loadConfig', () => {
+  test('version comes from package.json as semver', () => {
+    expect(loadConfig({}).version).toMatch(/^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$/);
+  });
+
   test('uses defaults when env is empty', () => {
     const config = loadConfig({});
 
     expect(config.port).toBe(3000);
-    expect(config.version).toBe('dev');
+    expect(config.version).toBe(packageJson.version);
+    expect(config.commit).toBe('local');
     expect(config.db.ssl).toBe(false);
   });
 
   test('reads values from env', () => {
-    const config = loadConfig({ PORT: '8080', APP_VERSION: 'v1', DB_HOST: 'db', DB_SSL: 'true' });
+    const config = loadConfig({
+      PORT: '8080',
+      APP_COMMIT: 'abc1234',
+      DB_HOST: 'db',
+      DB_SSL: 'true',
+    });
 
     expect(config.port).toBe(8080);
-    expect(config.version).toBe('v1');
+    expect(config.commit).toBe('abc1234');
     expect(config.db.host).toBe('db');
     expect(config.db.ssl).toEqual({ rejectUnauthorized: false });
   });

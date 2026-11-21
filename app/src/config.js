@@ -1,7 +1,10 @@
+const { version } = require('../package.json');
+
 function loadConfig(env = process.env) {
   return {
     port: Number(env.PORT || 3000),
-    version: env.APP_VERSION || 'dev',
+    version,
+    commit: env.APP_COMMIT || 'local',
     db: {
       host: env.DB_HOST || 'localhost',
       port: Number(env.DB_PORT || 5432),
