@@ -45,3 +45,44 @@ variable "secret_recovery_window_days" {
   type        = number
   default     = 7
 }
+
+variable "app_name" {
+  description = "Application, ECR repository and ECS service name."
+  type        = string
+  default     = "hello-service"
+}
+
+variable "image_tag" {
+  description = "Image tag to deploy (git short SHA)."
+  type        = string
+}
+
+variable "ecr_registry_id" {
+  description = "Account ID that owns the ECR repository. null means this account (single-account mode)."
+  type        = string
+  default     = null
+}
+
+variable "dns_zone_name" {
+  description = "Delegated subdomain zone; the app is served at dev.<zone> over HTTPS. Set via TF_VAR_dns_zone_name."
+  type        = string
+  default     = null
+}
+
+variable "dns_role_arn" {
+  description = "Role in the account owning the DNS zone. null uses the caller (single-account mode)."
+  type        = string
+  default     = null
+}
+
+variable "db_instance_class" {
+  description = "RDS instance class."
+  type        = string
+  default     = "db.t4g.micro"
+}
+
+variable "teardown_friendly" {
+  description = "Disable deletion protection and final snapshots so the env can be destroyed quickly."
+  type        = bool
+  default     = false
+}

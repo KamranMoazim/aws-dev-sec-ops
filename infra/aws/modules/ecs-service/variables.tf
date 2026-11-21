@@ -1,0 +1,135 @@
+variable "name" {
+  description = "Environment prefix and cluster name, e.g. devsecops-dev."
+  type        = string
+}
+
+variable "service_name" {
+  description = "Service and container name, e.g. hello-service."
+  type        = string
+}
+
+variable "vpc_id" {
+  description = "VPC ID."
+  type        = string
+}
+
+variable "vpc_cidr" {
+  description = "VPC CIDR, used for task egress to the database."
+  type        = string
+}
+
+variable "public_subnet_ids" {
+  description = "Subnets for the load balancer."
+  type        = list(string)
+}
+
+variable "app_subnet_ids" {
+  description = "Private subnets for tasks."
+  type        = list(string)
+}
+
+variable "image" {
+  description = "Full image URI with tag or digest."
+  type        = string
+}
+
+variable "container_port" {
+  description = "Port the container listens on."
+  type        = number
+  default     = 3000
+}
+
+variable "health_check_path" {
+  description = "Load balancer health check path."
+  type        = string
+  default     = "/health"
+}
+
+variable "cpu" {
+  description = "Task CPU units."
+  type        = number
+  default     = 256
+}
+
+variable "memory" {
+  description = "Task memory in MiB."
+  type        = number
+  default     = 512
+}
+
+variable "cpu_architecture" {
+  description = "X86_64 or ARM64; must match the image."
+  type        = string
+  default     = "X86_64"
+}
+
+variable "desired_count" {
+  description = "Initial task count; autoscaling owns it afterwards."
+  type        = number
+  default     = 1
+}
+
+variable "min_count" {
+  description = "Autoscaling minimum."
+  type        = number
+  default     = 1
+}
+
+variable "max_count" {
+  description = "Autoscaling maximum."
+  type        = number
+  default     = 3
+}
+
+variable "cpu_target_percent" {
+  description = "Target average CPU for scaling."
+  type        = number
+  default     = 60
+}
+
+variable "environment" {
+  description = "Plain environment variables."
+  type        = map(string)
+  default     = {}
+}
+
+variable "secrets" {
+  description = "Environment variables injected from Secrets Manager, as name => valueFrom ARN (optionally :json-key::)."
+  type        = map(string)
+  default     = {}
+}
+
+variable "secret_arns" {
+  description = "Secret ARNs the execution role may read (without json-key suffixes)."
+  type        = list(string)
+  default     = []
+}
+
+variable "kms_key_arn" {
+  description = "KMS key for the log group and secret decryption."
+  type        = string
+}
+
+variable "log_retention_days" {
+  description = "App log retention."
+  type        = number
+  default     = 365
+}
+
+variable "enable_https" {
+  description = "Serve HTTPS on 443 and redirect HTTP. Requires certificate_arn."
+  type        = bool
+  default     = false
+}
+
+variable "certificate_arn" {
+  description = "ACM certificate for HTTPS; used when enable_https is true."
+  type        = string
+  default     = null
+}
+
+variable "alb_deletion_protection" {
+  description = "Protect the load balancer from deletion (enable for prod)."
+  type        = bool
+  default     = true
+}

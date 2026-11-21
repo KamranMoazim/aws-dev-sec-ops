@@ -19,3 +19,53 @@ module "network" {
   kms_key_arn             = module.secrets.kms_key_arn
   flow_log_retention_days = var.flow_log_retention_days
 }
+
+data "aws_ecr_repository" "app" {
+  name        = var.app_name
+  registry_id = var.ecr_registry_id
+}
+
+module "rds" {
+  source = "../../modules/rds"
+
+  name                    = local.name
+  vpc_id                  = module.network.vpc_id
+  subnet_ids              = module.network.db_subnet_ids
+  allowed_security_groups = { app = module.app.app_security_group_id }
+  kms_key_arn             = module.secrets.kms_key_arn
+  instance_class          = var.db_instance_class
+  multi_az                = false
+  deletion_protection     = !var.teardown_friendly
+  skip_final_snapshot     = var.teardown_friendly
+  apply_immediately       = true
+}
+
+module "app" {
+  source = "../../modules/ecs-service"
+
+  name                    = local.name
+  service_name            = var.app_name
+  vpc_id                  = module.network.vpc_id
+  vpc_cidr                = module.network.vpc_cidr_block
+  public_subnet_ids       = module.network.public_subnet_ids
+  app_subnet_ids          = module.network.app_subnet_ids
+  image                   = "${data.aws_ecr_repository.app.repository_url}:${var.image_tag}"
+  kms_key_arn             = module.secrets.kms_key_arn
+  enable_https            = local.dns_enabled
+  certificate_arn         = local.dns_enabled ? aws_acm_certificate_validation.app[0].certificate_arn : null
+  alb_deletion_protection = !var.teardown_friendly
+
+  environment = {
+    DB_HOST = module.rds.address
+    DB_PORT = tostring(module.rds.port)
+    DB_NAME = module.rds.database_name
+    DB_SSL  = "true"
+  }
+
+  secrets = {
+    DB_USER     = "${module.rds.master_user_secret_arn}:username::"
+    DB_PASSWORD = "${module.rds.master_user_secret_arn}:password::"
+  }
+
+  secret_arns = [module.rds.master_user_secret_arn]
+}

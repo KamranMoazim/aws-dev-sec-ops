@@ -10,6 +10,10 @@ Node.js sample app.
 - Git branching and review rules: [docs/git-governance.md](docs/git-governance.md)
 - Architecture diagrams (ECS and EKS, draw.io sources included): [docs/architecture/](docs/architecture/)
 
+## Dev environment network
+
+![Dev network](docs/architecture/aws-dev-network-ecs.png)
+
 ## Phases
 
 1. AWS ECS on Fargate + Terraform + CodePipeline (current)
