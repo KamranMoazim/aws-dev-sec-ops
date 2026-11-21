@@ -1,10 +1,18 @@
 # Pinned by digest for reproducible builds; bump tag and digest together.
-ARG NODE_IMAGE=node:24-alpine@sha256:116b800c3754b440ee0aa3ed2f20f5bf3d99a554bfd9adeea09ea8017f6e85f5
+ARG NODE_IMAGE=public.ecr.aws/docker/library/node:24-alpine@sha256:116b800c3754b440ee0aa3ed2f20f5bf3d99a554bfd9adeea09ea8017f6e85f5
 
 FROM ${NODE_IMAGE} AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev --ignore-scripts && npm cache clean --force
+
+# Built only with --target test; CI runs lint and unit tests here so no Node install is needed on the runner.
+FROM ${NODE_IMAGE} AS test
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci --ignore-scripts
+COPY . .
+RUN npm run lint && npm run format:check && npm test
 
 FROM ${NODE_IMAGE} AS runtime
 ARG APP_VERSION=dev

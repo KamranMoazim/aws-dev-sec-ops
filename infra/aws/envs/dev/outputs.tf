@@ -47,3 +47,8 @@ output "db_secret_arn" {
   description = "RDS-managed secret with the database credentials."
   value       = module.rds.master_user_secret_arn
 }
+
+output "image_tag_parameter" {
+  description = "SSM parameter holding the released image tag."
+  value       = aws_ssm_parameter.image_tag.name
+}

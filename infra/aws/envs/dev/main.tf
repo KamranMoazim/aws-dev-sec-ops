@@ -20,6 +20,18 @@ module "network" {
   flow_log_retention_days = var.flow_log_retention_days
 }
 
+# The pipeline writes the released tag after a passing smoke test; Terraform follows it instead of reverting deploys.
+resource "aws_ssm_parameter" "image_tag" {
+  #checkov:skip=CKV2_AWS_34:Image tag is not sensitive
+  name           = "/${var.project}/dev/${var.app_name}/image-tag"
+  type           = "String"
+  insecure_value = var.initial_image_tag
+
+  lifecycle {
+    ignore_changes = [insecure_value]
+  }
+}
+
 data "aws_ecr_repository" "app" {
   name        = var.app_name
   registry_id = var.ecr_registry_id
@@ -49,7 +61,7 @@ module "app" {
   vpc_cidr                = module.network.vpc_cidr_block
   public_subnet_ids       = module.network.public_subnet_ids
   app_subnet_ids          = module.network.app_subnet_ids
-  image                   = "${data.aws_ecr_repository.app.repository_url}:${var.image_tag}"
+  image                   = "${data.aws_ecr_repository.app.repository_url}:${aws_ssm_parameter.image_tag.insecure_value}"
   kms_key_arn             = module.secrets.kms_key_arn
   enable_https            = local.dns_enabled
   certificate_arn         = local.dns_enabled ? aws_acm_certificate_validation.app[0].certificate_arn : null

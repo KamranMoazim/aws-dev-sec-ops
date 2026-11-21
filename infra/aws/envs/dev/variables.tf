@@ -52,8 +52,8 @@ variable "app_name" {
   default     = "hello-service"
 }
 
-variable "image_tag" {
-  description = "Image tag to deploy (git short SHA)."
+variable "initial_image_tag" {
+  description = "Image tag used only when the release parameter is first created; the pipeline owns it afterwards."
   type        = string
 }
 
