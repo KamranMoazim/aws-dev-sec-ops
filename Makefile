@@ -24,6 +24,9 @@ down:
 smoke:
 	curl -fsS localhost:3000/health && echo && curl -fsS localhost:3000/items && echo
 
+-include .env
+export TF_VAR_dns_zone_name
+
 ENV ?= dev
 TF_DIR = infra/aws/envs/$(ENV)
 
@@ -44,3 +47,13 @@ tf-destroy: tf-init
 tf-check:
 	terraform fmt -check -recursive infra
 	docker run --rm -v "$$PWD/infra:/infra" bridgecrew/checkov:latest -d /infra --framework terraform --compact --quiet
+
+IMAGE_TAG ?= $(shell git rev-parse --short HEAD)
+ECR_URL = $(shell terraform -chdir=infra/aws/envs/shared output -raw ecr_repository_url)
+
+.PHONY: push
+
+push:
+	aws ecr get-login-password | docker login --username AWS --password-stdin $(firstword $(subst /, ,$(ECR_URL)))
+	docker build --platform linux/amd64 --provenance=false --sbom=false --build-arg APP_VERSION=$(IMAGE_TAG) -t $(ECR_URL):$(IMAGE_TAG) app
+	docker push $(ECR_URL):$(IMAGE_TAG)

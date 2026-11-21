@@ -33,3 +33,9 @@ variable "ecr_force_delete" {
   type        = bool
   default     = false
 }
+
+variable "dns_zone_name" {
+  description = "Delegated subdomain zone, e.g. devsecops.example.com. Set via TF_VAR_dns_zone_name; empty disables DNS."
+  type        = string
+  default     = null
+}

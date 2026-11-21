@@ -33,3 +33,26 @@ provider "aws" {
     }
   }
 }
+
+# Route 53 records live in the shared account's zone; null dns_role_arn uses the caller (single-account mode).
+provider "aws" {
+  alias  = "dns"
+  region = var.region
+
+  dynamic "assume_role" {
+    for_each = var.dns_role_arn == null ? [] : [var.dns_role_arn]
+
+    content {
+      role_arn     = assume_role.value
+      session_name = "terraform-dev-dns"
+    }
+  }
+
+  default_tags {
+    tags = {
+      Project     = var.project
+      Environment = "dev"
+      ManagedBy   = "terraform"
+    }
+  }
+}
