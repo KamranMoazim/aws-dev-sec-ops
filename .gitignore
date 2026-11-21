@@ -37,3 +37,7 @@ reports/
 # Account-specific Terraform inputs (examples are committed)
 infra/aws/bootstrap/terraform.tfvars
 infra/aws/backend.hcl
+
+# Security tooling and scan output
+.tools/
+.tools-linux/

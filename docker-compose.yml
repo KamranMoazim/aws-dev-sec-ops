@@ -3,7 +3,7 @@ services:
     build:
       context: ./app
       args:
-        APP_VERSION: local
+        APP_COMMIT: local
     ports:
       - '3000:3000'
     environment:

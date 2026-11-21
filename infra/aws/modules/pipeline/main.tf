@@ -74,6 +74,23 @@ resource "aws_codepipeline" "this" {
   }
 
   stage {
+    name = "Scan"
+
+    action {
+      name            = "SourceScans"
+      category        = "Test"
+      owner           = "AWS"
+      provider        = "CodeBuild"
+      version         = "1"
+      input_artifacts = ["source"]
+
+      configuration = {
+        ProjectName = aws_codebuild_project.security.name
+      }
+    }
+  }
+
+  stage {
     name = "Build"
 
     action {

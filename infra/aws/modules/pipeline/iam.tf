@@ -1,5 +1,9 @@
 locals {
-  codebuild_project_arns = [aws_codebuild_project.build.arn, aws_codebuild_project.smoke.arn]
+  codebuild_project_arns = [
+    aws_codebuild_project.build.arn,
+    aws_codebuild_project.security.arn,
+    aws_codebuild_project.smoke.arn,
+  ]
 }
 
 data "aws_iam_policy_document" "artifacts_access" {
@@ -26,6 +30,18 @@ data "aws_iam_policy_document" "codebuild_logs" {
   statement {
     actions   = ["logs:CreateLogStream", "logs:PutLogEvents"]
     resources = ["${aws_cloudwatch_log_group.codebuild.arn}:*"]
+  }
+}
+
+data "aws_iam_policy_document" "codebuild_reports" {
+  statement {
+    actions = [
+      "codebuild:BatchPutTestCases",
+      "codebuild:CreateReport",
+      "codebuild:CreateReportGroup",
+      "codebuild:UpdateReport",
+    ]
+    resources = ["arn:aws:codebuild:${local.region}:${local.account_id}:report-group/${var.name}-*"]
   }
 }
 
@@ -118,6 +134,7 @@ data "aws_iam_policy_document" "build" {
   source_policy_documents = [
     data.aws_iam_policy_document.artifacts_access.json,
     data.aws_iam_policy_document.codebuild_logs.json,
+    data.aws_iam_policy_document.codebuild_reports.json,
   ]
 
   statement {
@@ -150,6 +167,25 @@ resource "aws_iam_role_policy" "build" {
   name   = "build"
   role   = aws_iam_role.build.id
   policy = data.aws_iam_policy_document.build.json
+}
+
+resource "aws_iam_role" "security" {
+  name               = "${var.name}-security"
+  assume_role_policy = data.aws_iam_policy_document.codebuild_assume.json
+}
+
+resource "aws_iam_role_policy" "security" {
+  name   = "security"
+  role   = aws_iam_role.security.id
+  policy = data.aws_iam_policy_document.security.json
+}
+
+data "aws_iam_policy_document" "security" {
+  source_policy_documents = [
+    data.aws_iam_policy_document.artifacts_access.json,
+    data.aws_iam_policy_document.codebuild_logs.json,
+    data.aws_iam_policy_document.codebuild_reports.json,
+  ]
 }
 
 data "aws_iam_policy_document" "smoke" {

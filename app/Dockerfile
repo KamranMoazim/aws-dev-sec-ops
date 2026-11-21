@@ -15,9 +15,9 @@ COPY . .
 RUN npm run lint && npm run format:check && npm test
 
 FROM ${NODE_IMAGE} AS runtime
-ARG APP_VERSION=dev
+ARG APP_COMMIT=local
 ENV NODE_ENV=production \
-    APP_VERSION=${APP_VERSION} \
+    APP_COMMIT=${APP_COMMIT} \
     PORT=3000
 WORKDIR /app
 # Package managers are not needed at runtime and are the main source of base image CVEs.

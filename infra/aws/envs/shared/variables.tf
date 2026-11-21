@@ -56,3 +56,9 @@ variable "dev_app_url" {
   type        = string
   default     = ""
 }
+
+variable "enable_inspector" {
+  description = "Amazon Inspector enhanced, continuous scanning of ECR images (rescans when new CVEs are published)."
+  type        = bool
+  default     = true
+}
