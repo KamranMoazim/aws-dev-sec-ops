@@ -1,0 +1,4 @@
+project             = "devsecops"
+region              = "us-east-1"
+budget_limit_usd    = 50
+budget_alert_emails = ["you@example.com"]
