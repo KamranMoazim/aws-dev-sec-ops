@@ -33,3 +33,7 @@ override.tf.json
 
 # Scan reports
 reports/
+
+# Account-specific Terraform inputs (examples are committed)
+infra/aws/bootstrap/terraform.tfvars
+infra/aws/backend.hcl
