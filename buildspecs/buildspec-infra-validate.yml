@@ -1,0 +1,18 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.12
+    commands:
+      - scripts/security/install-tools.sh terraform checkov
+  build:
+    commands:
+      - scripts/ci/terraform-validate.sh
+
+reports:
+  security-iac:
+    base-directory: reports
+    files:
+      - checkov.xml
+    file-format: JUNITXML

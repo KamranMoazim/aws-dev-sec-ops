@@ -86,3 +86,9 @@ variable "alert_emails" {
   type        = list(string)
   default     = []
 }
+
+variable "infra_pipeline_environments" {
+  description = "Environment roots the infrastructure pipeline plans and applies. Staging and prod are created on demand, so only dev by default."
+  type        = list(string)
+  default     = ["dev"]
+}
