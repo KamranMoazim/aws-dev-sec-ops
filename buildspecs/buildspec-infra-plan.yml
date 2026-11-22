@@ -14,7 +14,7 @@ phases:
     commands:
       - scripts/ci/terraform-plan.sh "$ENVIRONMENT"
       - mkdir -p plan-output && cp infra/aws/envs/"$ENVIRONMENT"/{tfplan,plan.txt} plan-output/
-      - PLAN_SUMMARY="$ENVIRONMENT: $(cat infra/aws/envs/"$ENVIRONMENT"/plan-summary.txt)"
+      - 'PLAN_SUMMARY="$ENVIRONMENT: $(cat infra/aws/envs/"$ENVIRONMENT"/plan-summary.txt)"'
 
 artifacts:
   base-directory: plan-output
