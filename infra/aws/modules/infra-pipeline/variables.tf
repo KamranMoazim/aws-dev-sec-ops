@@ -46,9 +46,9 @@ variable "state_bucket" {
 }
 
 variable "protected_state_prefixes" {
-  description = "State keys the pipeline may never read or write (the bootstrap and the root holding this pipeline)."
+  description = "State keys the pipeline may never read or write (bootstrap, the root holding this pipeline, security)."
   type        = list(string)
-  default     = ["bootstrap/", "envs/shared/"]
+  default     = ["bootstrap/", "envs/shared/", "envs/security/"]
 }
 
 variable "state_kms_key_arn" {

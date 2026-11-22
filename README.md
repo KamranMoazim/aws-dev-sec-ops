@@ -54,6 +54,14 @@ Prove it with the drill, which deploys a revision that passes `/health` but retu
 scripts/ops/rollback-drill.sh devsecops-staging hello-service https://staging.<zone>
 ```
 
+## Security baseline
+
+![Security baseline](docs/architecture/aws-security-baseline.png)
+
+`infra/aws/envs/security` enables a multi-region CloudTrail, AWS Config, GuardDuty (with Fargate runtime
+monitoring) and Security Hub (Foundational Security Best Practices); high and critical findings are
+emailed. Details, SCP examples and a test command: [docs/security/README.md](docs/security/README.md).
+
 ## Dev environment network
 
 ![Dev network](docs/architecture/aws-dev-network-ecs.png)
