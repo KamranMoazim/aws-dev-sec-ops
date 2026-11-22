@@ -25,7 +25,7 @@ smoke:
 	curl -fsS localhost:3000/health && echo && curl -fsS localhost:3000/items && echo
 
 -include .env
-export TF_VAR_dns_zone_name
+export TF_VAR_dns_zone_name TF_VAR_approval_emails
 
 ENV ?= dev
 TF_DIR = infra/aws/envs/$(ENV)

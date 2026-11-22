@@ -2,7 +2,7 @@ resource "aws_s3_bucket" "artifacts" {
   #checkov:skip=CKV_AWS_18:Access logging is covered by org CloudTrail S3 data events (security baseline step)
   #checkov:skip=CKV_AWS_144:Pipeline artifacts are transient; no cross-region replication
   #checkov:skip=CKV2_AWS_62:No consumers for artifact bucket event notifications
-  bucket        = "${var.name}-artifacts-${local.account_id}-${local.region}"
+  bucket        = coalesce(var.artifact_bucket_name, "${var.name}-artifacts-${local.account_id}-${local.region}")
   force_destroy = true
 }
 

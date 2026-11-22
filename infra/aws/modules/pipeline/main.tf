@@ -16,6 +16,78 @@ data "aws_region" "current" {}
 locals {
   account_id = data.aws_caller_identity.current.account_id
   region     = data.aws_region.current.region
+  any_dast   = anytrue([for env in var.environments : env.dast])
+
+  deploy_stages = flatten([for env in var.environments : concat(
+    env.approval ? [{
+      name = "Approve${title(env.name)}"
+      actions = [{
+        name            = "Approve"
+        category        = "Approval"
+        provider        = "Manual"
+        input_artifacts = []
+        run_order       = 1
+        timeout_minutes = 1440
+        configuration = tomap({
+          NotificationArn = var.approval_topic_arn
+          CustomData      = "Image #{Build.IMAGE_TAG} passed all earlier stages. Approve to deploy it to ${env.name}."
+        })
+      }]
+    }] : [],
+    [{
+      name = "Deploy${title(env.name)}"
+      actions = concat(
+        [
+          {
+            name            = "Deploy"
+            category        = "Deploy"
+            provider        = "ECS"
+            input_artifacts = ["image"]
+            run_order       = 1
+            timeout_minutes = null
+            configuration = tomap({
+              ClusterName       = env.cluster_name
+              ServiceName       = env.service_name
+              FileName          = "imagedefinitions.json"
+              DeploymentTimeout = "30"
+            })
+          },
+          {
+            name            = "SmokeTest"
+            category        = "Test"
+            provider        = "CodeBuild"
+            input_artifacts = ["source"]
+            run_order       = 2
+            timeout_minutes = null
+            configuration = tomap({
+              ProjectName = aws_codebuild_project.smoke.name
+              EnvironmentVariables = jsonencode([
+                { name = "IMAGE_TAG", value = "#{Build.IMAGE_TAG}", type = "PLAINTEXT" },
+                { name = "ECS_CLUSTER", value = env.cluster_name, type = "PLAINTEXT" },
+                { name = "ECS_SERVICE", value = env.service_name, type = "PLAINTEXT" },
+                { name = "APP_URL", value = env.app_url, type = "PLAINTEXT" },
+                { name = "IMAGE_TAG_PARAMETER", value = env.image_tag_parameter_name, type = "PLAINTEXT" },
+              ])
+            })
+          },
+        ],
+        env.dast ? [{
+          name            = "DastBaseline"
+          category        = "Test"
+          provider        = "CodeBuild"
+          input_artifacts = ["source"]
+          run_order       = 3
+          timeout_minutes = null
+          configuration = tomap({
+            ProjectName = aws_codebuild_project.dast[0].name
+            EnvironmentVariables = jsonencode([
+              { name = "APP_URL", value = env.app_url, type = "PLAINTEXT" },
+            ])
+          })
+        }] : [],
+      )
+    }],
+  )])
 }
 
 resource "aws_codepipeline" "this" {
@@ -41,11 +113,15 @@ resource "aws_codepipeline" "this" {
 
       push {
         branches {
-          includes = [var.branch]
+          includes = length(var.trigger_branches) > 0 ? var.trigger_branches : [var.branch]
         }
 
-        file_paths {
-          includes = var.trigger_file_paths
+        dynamic "file_paths" {
+          for_each = var.trigger_file_paths == null ? [] : [var.trigger_file_paths]
+
+          content {
+            includes = file_paths.value
+          }
         }
       }
     }
@@ -112,44 +188,26 @@ resource "aws_codepipeline" "this" {
     }
   }
 
-  stage {
-    name = "DeployDev"
+  dynamic "stage" {
+    for_each = local.deploy_stages
 
-    action {
-      name            = "Deploy"
-      category        = "Deploy"
-      owner           = "AWS"
-      provider        = "ECS"
-      version         = "1"
-      input_artifacts = ["image"]
-      run_order       = 1
+    content {
+      name = stage.value.name
 
-      configuration = {
-        ClusterName       = var.dev.cluster_name
-        ServiceName       = var.dev.service_name
-        FileName          = "imagedefinitions.json"
-        DeploymentTimeout = "15"
-      }
-    }
+      dynamic "action" {
+        for_each = stage.value.actions
 
-    action {
-      name            = "SmokeTest"
-      category        = "Test"
-      owner           = "AWS"
-      provider        = "CodeBuild"
-      version         = "1"
-      input_artifacts = ["source"]
-      run_order       = 2
-
-      configuration = {
-        ProjectName = aws_codebuild_project.smoke.name
-        EnvironmentVariables = jsonencode([
-          { name = "IMAGE_TAG", value = "#{Build.IMAGE_TAG}", type = "PLAINTEXT" },
-          { name = "ECS_CLUSTER", value = var.dev.cluster_name, type = "PLAINTEXT" },
-          { name = "ECS_SERVICE", value = var.dev.service_name, type = "PLAINTEXT" },
-          { name = "APP_URL", value = var.dev.app_url, type = "PLAINTEXT" },
-          { name = "IMAGE_TAG_PARAMETER", value = var.dev.image_tag_parameter_name, type = "PLAINTEXT" },
-        ])
+        content {
+          name               = action.value.name
+          category           = action.value.category
+          owner              = "AWS"
+          provider           = action.value.provider
+          version            = "1"
+          input_artifacts    = action.value.input_artifacts
+          run_order          = action.value.run_order
+          timeout_in_minutes = action.value.timeout_minutes
+          configuration      = action.value.configuration
+        }
       }
     }
   }

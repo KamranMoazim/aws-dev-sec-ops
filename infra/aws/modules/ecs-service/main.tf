@@ -87,6 +87,15 @@ resource "aws_ecs_service" "this" {
     rollback = true
   }
 
+  dynamic "deployment_configuration" {
+    for_each = local.blue_green ? [1] : []
+
+    content {
+      strategy             = "BLUE_GREEN"
+      bake_time_in_minutes = var.bake_time_minutes
+    }
+  }
+
   network_configuration {
     subnets          = var.app_subnet_ids
     security_groups  = [aws_security_group.app.id]
@@ -97,13 +106,25 @@ resource "aws_ecs_service" "this" {
     target_group_arn = aws_lb_target_group.this.arn
     container_name   = var.service_name
     container_port   = var.container_port
+
+    dynamic "advanced_configuration" {
+      for_each = local.blue_green ? [1] : []
+
+      content {
+        alternate_target_group_arn = aws_lb_target_group.green[0].arn
+        production_listener_rule   = aws_lb_listener_rule.production[0].arn
+        test_listener_rule         = aws_lb_listener_rule.test[0].arn
+        role_arn                   = aws_iam_role.blue_green[0].arn
+      }
+    }
   }
 
+  # Blue/green swaps the primary and alternate target groups on every deployment.
   lifecycle {
-    ignore_changes = [desired_count]
+    ignore_changes = [desired_count, load_balancer]
   }
 
-  depends_on = [aws_lb_listener.http, aws_lb_listener.https]
+  depends_on = [aws_lb_listener.http, aws_lb_listener.https, aws_iam_role_policy_attachment.blue_green]
 }
 
 resource "aws_appautoscaling_target" "this" {

@@ -5,6 +5,16 @@ function createApp({ db, version }) {
   const app = express();
   app.disable('x-powered-by');
 
+  app.use((req, res, next) => {
+    res.set({
+      'X-Content-Type-Options': 'nosniff',
+      'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+      'Cross-Origin-Resource-Policy': 'same-origin',
+      'Cache-Control': 'no-store',
+    });
+    next();
+  });
+
   app.get('/', (req, res) => {
     res.json({ service: 'hello', version });
   });

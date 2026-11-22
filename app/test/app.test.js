@@ -17,6 +17,21 @@ describe('hello service', () => {
     expect(response.body).toEqual({ service: 'hello', version: '1.2.3' });
   });
 
+  test('responses carry security headers, including on 404', async () => {
+    const app = createApp({ db: fakeDb([]), version: 'dev' });
+
+    for (const path of ['/', '/missing']) {
+      const response = await request(app).get(path);
+
+      expect(response.headers['x-content-type-options']).toBe('nosniff');
+      expect(response.headers['strict-transport-security']).toBe(
+        'max-age=31536000; includeSubDomains',
+      );
+      expect(response.headers['cross-origin-resource-policy']).toBe('same-origin');
+      expect(response.headers['cache-control']).toBe('no-store');
+    }
+  });
+
   test('GET /health returns ok', async () => {
     const app = createApp({ db: fakeDb([]), version: 'dev' });
 

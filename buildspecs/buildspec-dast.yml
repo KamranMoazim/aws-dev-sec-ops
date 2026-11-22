@@ -1,0 +1,6 @@
+version: 0.2
+
+phases:
+  build:
+    commands:
+      - scripts/security/scan-dast.sh "$APP_URL"

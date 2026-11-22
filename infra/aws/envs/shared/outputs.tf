@@ -22,3 +22,8 @@ output "pipeline_name" {
   description = "App delivery pipeline."
   value       = module.app_pipeline.pipeline_name
 }
+
+output "release_pipeline_name" {
+  description = "Release pipeline: staging, approval, prod."
+  value       = module.release_pipeline.pipeline_name
+}

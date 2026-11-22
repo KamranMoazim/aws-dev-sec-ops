@@ -133,3 +133,32 @@ variable "alb_deletion_protection" {
   type        = bool
   default     = true
 }
+
+variable "deployment_strategy" {
+  description = "ROLLING or BLUE_GREEN (ECS native blue/green with a second target group)."
+  type        = string
+  default     = "ROLLING"
+
+  validation {
+    condition     = contains(["ROLLING", "BLUE_GREEN"], var.deployment_strategy)
+    error_message = "Use ROLLING or BLUE_GREEN."
+  }
+}
+
+variable "bake_time_minutes" {
+  description = "Blue/green: minutes both revisions stay up after the traffic shift so a rollback is instant."
+  type        = number
+  default     = 5
+}
+
+variable "test_listener_port" {
+  description = "Blue/green: ALB port that routes to the new revision before production traffic shifts."
+  type        = number
+  default     = 8443
+}
+
+variable "test_listener_cidrs" {
+  description = "Blue/green: CIDRs allowed to reach the test listener; keep private."
+  type        = list(string)
+  default     = []
+}

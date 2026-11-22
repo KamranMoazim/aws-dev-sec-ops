@@ -51,10 +51,28 @@ variable "dev_account_id" {
   default     = null
 }
 
-variable "dev_app_url" {
-  description = "Dev base URL for smoke tests when no DNS zone is configured."
+variable "staging_account_id" {
+  description = "Staging account ID. null means this account (single-account mode)."
   type        = string
-  default     = ""
+  default     = null
+}
+
+variable "prod_account_id" {
+  description = "Prod account ID. null means this account (single-account mode)."
+  type        = string
+  default     = null
+}
+
+variable "app_urls" {
+  description = "Base URLs per environment for smoke tests when no DNS zone is configured."
+  type        = map(string)
+  default     = {}
+}
+
+variable "approval_emails" {
+  description = "Emails asked to approve prod releases. Set via TF_VAR_approval_emails; each must confirm the SNS subscription."
+  type        = list(string)
+  default     = []
 }
 
 variable "enable_inspector" {

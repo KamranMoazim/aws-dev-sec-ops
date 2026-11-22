@@ -14,6 +14,22 @@ Node.js sample app.
 
 ![CI/CD pipeline](docs/architecture/aws-cicd-pipeline-ecs.png)
 
+## Release pipeline: staging, approval, prod blue/green
+
+![Release pipeline](docs/architecture/aws-release-pipeline-ecs.png)
+
+A push to `release/*` builds the image once and promotes the same tag: staging (ECS blue/green, smoke,
+OWASP ZAP baseline) -> manual approval by SNS email -> prod (ECS blue/green with bake time, WAF,
+Multi-AZ RDS). All three environments use `infra/aws/modules/app-environment`; staging and prod are
+created for a release and destroyed when idle:
+
+```sh
+make tf-plan ENV=staging && make tf-apply ENV=staging
+make tf-plan ENV=prod && make tf-apply ENV=prod
+git checkout -b release/0.2.0 develop && (cd app && npm version minor --no-git-tag-version)
+make tf-destroy ENV=prod && make tf-destroy ENV=staging
+```
+
 ## Dev environment network
 
 ![Dev network](docs/architecture/aws-dev-network-ecs.png)
