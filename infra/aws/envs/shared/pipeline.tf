@@ -3,11 +3,33 @@ data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
 locals {
-  region         = data.aws_region.current.region
-  dev_account_id = coalesce(var.dev_account_id, data.aws_caller_identity.current.account_id)
-  dev_name       = "${var.project}-dev"
-  dev_parameter  = "/${var.project}/dev/${var.app_name}/image-tag"
-  dev_app_url    = local.dns_enabled ? "https://dev.${var.dns_zone_name}" : var.dev_app_url
+  region = data.aws_region.current.region
+
+  targets = {
+    for env, settings in {
+      dev     = { account_id = var.dev_account_id, hostname = "dev" }
+      staging = { account_id = var.staging_account_id, hostname = "staging" }
+      prod    = { account_id = var.prod_account_id, hostname = "app" }
+      } : env => {
+      account_id = coalesce(settings.account_id, data.aws_caller_identity.current.account_id)
+      cluster    = "${var.project}-${env}"
+      parameter  = "/${var.project}/${env}/${var.app_name}/image-tag"
+      app_url    = local.dns_enabled ? "https://${settings.hostname}.${var.dns_zone_name}" : lookup(var.app_urls, env, "")
+    }
+  }
+
+  environments = {
+    for env, target in local.targets : env => {
+      name                     = env
+      cluster_name             = target.cluster
+      service_name             = var.app_name
+      service_arn              = "arn:aws:ecs:${local.region}:${target.account_id}:service/${target.cluster}/${var.app_name}"
+      task_role_arns           = [for suffix in ["execution", "task"] : "arn:aws:iam::${target.account_id}:role/${target.cluster}-${var.app_name}-${suffix}"]
+      app_url                  = target.app_url
+      image_tag_parameter_name = target.parameter
+      image_tag_parameter_arn  = "arn:aws:ssm:${local.region}:${target.account_id}:parameter${target.parameter}"
+    }
+  }
 }
 
 module "shared_kms" {
@@ -32,14 +54,41 @@ module "app_pipeline" {
   ecr_repository_arn = module.ecr.repository_arn
   container_name     = var.app_name
   kms_key_arn        = module.shared_kms.kms_key_arn
+  environments       = [local.environments.dev]
+}
 
-  dev = {
-    cluster_name             = local.dev_name
-    service_name             = var.app_name
-    service_arn              = "arn:aws:ecs:${local.region}:${local.dev_account_id}:service/${local.dev_name}/${var.app_name}"
-    task_role_arns           = [for suffix in ["execution", "task"] : "arn:aws:iam::${local.dev_account_id}:role/${local.dev_name}-${var.app_name}-${suffix}"]
-    app_url                  = local.dev_app_url
-    image_tag_parameter_name = local.dev_parameter
-    image_tag_parameter_arn  = "arn:aws:ssm:${local.region}:${local.dev_account_id}:parameter${local.dev_parameter}"
-  }
+resource "aws_sns_topic" "approvals" {
+  name              = "${var.project}-release-approvals"
+  kms_master_key_id = module.shared_kms.kms_key_arn
+}
+
+resource "aws_sns_topic_subscription" "approvals" {
+  for_each = toset(var.approval_emails)
+
+  topic_arn = aws_sns_topic.approvals.arn
+  protocol  = "email"
+  endpoint  = each.value
+}
+
+# Builds once from release/*, then promotes that same image: staging (smoke + DAST) -> approval -> prod.
+module "release_pipeline" {
+  source = "../../modules/pipeline"
+
+  name                 = "${var.project}-${var.app_name}-release"
+  artifact_bucket_name = "${var.project}-release-artifacts-${data.aws_caller_identity.current.account_id}-${local.region}"
+  connection_arn       = aws_codeconnections_connection.github.arn
+  repository_id        = var.repository_id
+  branch               = "main"
+  trigger_branches     = ["release/*"]
+  trigger_file_paths   = null
+  ecr_repository_url   = module.ecr.repository_url
+  ecr_repository_arn   = module.ecr.repository_arn
+  container_name       = var.app_name
+  kms_key_arn          = module.shared_kms.kms_key_arn
+  approval_topic_arn   = aws_sns_topic.approvals.arn
+
+  environments = [
+    merge(local.environments.staging, { dast = true }),
+    merge(local.environments.prod, { approval = true }),
+  ]
 }

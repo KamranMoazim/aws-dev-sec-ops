@@ -78,6 +78,7 @@ resource "aws_vpc_security_group_egress_rule" "app_postgres" {
 resource "aws_lb" "this" {
   #checkov:skip=CKV_AWS_91:Access logs added with the observability step
   #checkov:skip=CKV2_AWS_28:WAF is attached in prod only
+  #checkov:skip=CKV2_AWS_76:The prod WAF (app-environment module) includes KnownBadInputs for Log4j
   name                       = local.full_name
   load_balancer_type         = "application"
   internal                   = false

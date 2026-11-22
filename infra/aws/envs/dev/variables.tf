@@ -16,10 +16,38 @@ variable "deploy_role_arn" {
   default     = null
 }
 
-variable "vpc_cidr" {
-  description = "VPC CIDR for this environment; keep unique per env to allow peering later."
+variable "dns_role_arn" {
+  description = "Role in the account owning the DNS zone. null uses the caller (single-account mode)."
   type        = string
-  default     = "10.10.0.0/16"
+  default     = null
+}
+
+variable "dns_zone_name" {
+  description = "Delegated subdomain zone. Set via TF_VAR_dns_zone_name."
+  type        = string
+  default     = null
+}
+
+variable "app_name" {
+  description = "Application, ECR repository and ECS service name."
+  type        = string
+  default     = "hello-service"
+}
+
+variable "ecr_registry_id" {
+  description = "Account ID that owns the ECR repository. null means this account (single-account mode)."
+  type        = string
+  default     = null
+}
+
+variable "initial_image_tag" {
+  description = "Image tag used only when the release parameter is first created; the pipeline owns it afterwards."
+  type        = string
+}
+
+variable "vpc_cidr" {
+  description = "VPC CIDR; unique per env."
+  type        = string
 }
 
 variable "availability_zones" {
@@ -44,35 +72,6 @@ variable "secret_recovery_window_days" {
   description = "Days a deleted secret can be restored. 0 for instant demo teardown."
   type        = number
   default     = 7
-}
-
-variable "app_name" {
-  description = "Application, ECR repository and ECS service name."
-  type        = string
-  default     = "hello-service"
-}
-
-variable "initial_image_tag" {
-  description = "Image tag used only when the release parameter is first created; the pipeline owns it afterwards."
-  type        = string
-}
-
-variable "ecr_registry_id" {
-  description = "Account ID that owns the ECR repository. null means this account (single-account mode)."
-  type        = string
-  default     = null
-}
-
-variable "dns_zone_name" {
-  description = "Delegated subdomain zone; the app is served at dev.<zone> over HTTPS. Set via TF_VAR_dns_zone_name."
-  type        = string
-  default     = null
-}
-
-variable "dns_role_arn" {
-  description = "Role in the account owning the DNS zone. null uses the caller (single-account mode)."
-  type        = string
-  default     = null
 }
 
 variable "db_instance_class" {

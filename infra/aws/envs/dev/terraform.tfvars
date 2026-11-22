@@ -5,4 +5,4 @@ availability_zones          = ["us-east-1a", "us-east-1b", "us-east-1c"]
 single_nat_gateway          = true
 secret_recovery_window_days = 0
 teardown_friendly           = true
-initial_image_tag           = "manual-202611212009"
+initial_image_tag           = "d9464ca"

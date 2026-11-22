@@ -37,3 +37,8 @@ output "alb_zone_id" {
   description = "Load balancer hosted zone ID for alias records."
   value       = aws_lb.this.zone_id
 }
+
+output "alb_arn" {
+  description = "Load balancer ARN, e.g. for a WAF association."
+  value       = aws_lb.this.arn
+}

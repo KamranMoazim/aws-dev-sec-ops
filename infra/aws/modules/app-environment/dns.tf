@@ -1,6 +1,6 @@
 locals {
   dns_enabled = try(length(var.dns_zone_name) > 0, false)
-  app_fqdn    = local.dns_enabled ? "dev.${var.dns_zone_name}" : null
+  app_fqdn    = local.dns_enabled ? "${var.hostname}.${var.dns_zone_name}" : null
 }
 
 data "aws_route53_zone" "this" {

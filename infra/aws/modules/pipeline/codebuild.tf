@@ -81,7 +81,7 @@ resource "aws_codebuild_project" "smoke" {
   description    = "Smoke test a deployed environment and record the released image tag"
   service_role   = aws_iam_role.smoke.arn
   encryption_key = var.kms_key_arn
-  build_timeout  = 15
+  build_timeout  = 45
 
   artifacts {
     type = "CODEPIPELINE"
@@ -102,6 +102,40 @@ resource "aws_codebuild_project" "smoke" {
     cloudwatch_logs {
       group_name  = aws_cloudwatch_log_group.codebuild.name
       stream_name = "smoke"
+    }
+  }
+}
+
+resource "aws_codebuild_project" "dast" {
+  #checkov:skip=CKV_AWS_316:Privileged mode is required to run the ZAP container
+  count = local.any_dast ? 1 : 0
+
+  name           = "${var.name}-dast"
+  description    = "OWASP ZAP baseline scan of a deployed environment"
+  service_role   = aws_iam_role.dast[0].arn
+  encryption_key = var.kms_key_arn
+  build_timeout  = 30
+
+  artifacts {
+    type = "CODEPIPELINE"
+  }
+
+  source {
+    type      = "CODEPIPELINE"
+    buildspec = "buildspecs/buildspec-dast.yml"
+  }
+
+  environment {
+    compute_type    = var.build_compute_type
+    image           = var.build_image
+    type            = "LINUX_CONTAINER"
+    privileged_mode = true
+  }
+
+  logs_config {
+    cloudwatch_logs {
+      group_name  = aws_cloudwatch_log_group.codebuild.name
+      stream_name = "dast"
     }
   }
 }

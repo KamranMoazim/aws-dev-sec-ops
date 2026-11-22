@@ -14,13 +14,19 @@ variable "repository_id" {
 }
 
 variable "branch" {
-  description = "Branch that triggers the pipeline."
+  description = "Branch the source action checks out on a manual start."
   type        = string
   default     = "develop"
 }
 
+variable "trigger_branches" {
+  description = "Branch globs whose pushes start the pipeline, e.g. [\"release/*\"]. Empty uses branch."
+  type        = list(string)
+  default     = []
+}
+
 variable "trigger_file_paths" {
-  description = "Only changes under these paths start the pipeline."
+  description = "Only changes under these paths start the pipeline. null triggers on every push."
   type        = list(string)
   default     = ["app/**", "buildspecs/**", "scripts/**"]
 }
@@ -45,9 +51,10 @@ variable "kms_key_arn" {
   type        = string
 }
 
-variable "dev" {
-  description = "Dev deployment target."
-  type = object({
+variable "environments" {
+  description = "Deployment targets in promotion order. approval adds a manual gate before the env; dast runs a ZAP baseline after the smoke test."
+  type = list(object({
+    name                     = string
     cluster_name             = string
     service_name             = string
     service_arn              = string
@@ -55,7 +62,20 @@ variable "dev" {
     app_url                  = string
     image_tag_parameter_name = string
     image_tag_parameter_arn  = string
-  })
+    approval                 = optional(bool, false)
+    dast                     = optional(bool, false)
+  }))
+
+  validation {
+    condition     = length(var.environments) > 0
+    error_message = "Provide at least one environment."
+  }
+}
+
+variable "approval_topic_arn" {
+  description = "SNS topic notified for manual approvals. Required when any environment has approval."
+  type        = string
+  default     = null
 }
 
 variable "build_image" {
@@ -80,4 +100,10 @@ variable "artifact_retention_days" {
   description = "Days to keep pipeline artifacts."
   type        = number
   default     = 30
+}
+
+variable "artifact_bucket_name" {
+  description = "Artifact bucket name override when <name>-artifacts-<account>-<region> exceeds 63 characters."
+  type        = string
+  default     = null
 }

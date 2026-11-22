@@ -1,9 +1,16 @@
 locals {
-  codebuild_project_arns = [
-    aws_codebuild_project.build.arn,
-    aws_codebuild_project.security.arn,
-    aws_codebuild_project.smoke.arn,
-  ]
+  codebuild_project_arns = concat(
+    [
+      aws_codebuild_project.build.arn,
+      aws_codebuild_project.security.arn,
+      aws_codebuild_project.smoke.arn,
+    ],
+    aws_codebuild_project.dast[*].arn,
+  )
+  service_arns         = [for env in var.environments : env.service_arn]
+  task_role_arns       = flatten([for env in var.environments : env.task_role_arns])
+  image_tag_parameters = [for env in var.environments : env.image_tag_parameter_arn]
+  needs_approval       = anytrue([for env in var.environments : env.approval])
 }
 
 data "aws_iam_policy_document" "artifacts_access" {
@@ -57,6 +64,7 @@ data "aws_iam_policy_document" "pipeline_assume" {
 }
 
 data "aws_iam_policy_document" "pipeline" {
+  #checkov:skip=CKV_AWS_356:RegisterTaskDefinition and DescribeTaskDefinition do not support resource-level permissions
   source_policy_documents = [data.aws_iam_policy_document.artifacts_access.json]
 
   statement {
@@ -74,7 +82,7 @@ data "aws_iam_policy_document" "pipeline" {
   statement {
     sid       = "DeployService"
     actions   = ["ecs:DescribeServices", "ecs:UpdateService"]
-    resources = [var.dev.service_arn]
+    resources = local.service_arns
   }
 
   statement {
@@ -92,12 +100,22 @@ data "aws_iam_policy_document" "pipeline" {
   statement {
     sid       = "PassTaskRoles"
     actions   = ["iam:PassRole"]
-    resources = var.dev.task_role_arns
+    resources = local.task_role_arns
 
     condition {
       test     = "StringEquals"
       variable = "iam:PassedToService"
       values   = ["ecs-tasks.amazonaws.com"]
+    }
+  }
+
+  dynamic "statement" {
+    for_each = local.needs_approval ? [var.approval_topic_arn] : []
+
+    content {
+      sid       = "NotifyApprovers"
+      actions   = ["sns:Publish"]
+      resources = [statement.value]
     }
   }
 }
@@ -197,7 +215,7 @@ data "aws_iam_policy_document" "smoke" {
   statement {
     sid       = "VerifyDeployment"
     actions   = ["ecs:DescribeServices"]
-    resources = [var.dev.service_arn]
+    resources = local.service_arns
   }
 
   statement {
@@ -209,7 +227,7 @@ data "aws_iam_policy_document" "smoke" {
   statement {
     sid       = "RecordReleasedTag"
     actions   = ["ssm:PutParameter"]
-    resources = [var.dev.image_tag_parameter_arn]
+    resources = local.image_tag_parameters
   }
 }
 
@@ -222,4 +240,19 @@ resource "aws_iam_role_policy" "smoke" {
   name   = "smoke"
   role   = aws_iam_role.smoke.id
   policy = data.aws_iam_policy_document.smoke.json
+}
+
+resource "aws_iam_role" "dast" {
+  count = local.any_dast ? 1 : 0
+
+  name               = "${var.name}-dast"
+  assume_role_policy = data.aws_iam_policy_document.codebuild_assume.json
+}
+
+resource "aws_iam_role_policy" "dast" {
+  count = local.any_dast ? 1 : 0
+
+  name   = "dast"
+  role   = aws_iam_role.dast[0].id
+  policy = data.aws_iam_policy_document.security.json
 }
