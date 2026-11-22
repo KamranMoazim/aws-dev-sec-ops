@@ -39,6 +39,7 @@ resource "aws_codestarnotifications_notification_rule" "pipeline_failed" {
   for_each = {
     app     = module.app_pipeline.pipeline_arn
     release = module.release_pipeline.pipeline_arn
+    infra   = module.infra_pipeline.pipeline_arn
   }
 
   name           = "${var.project}-${each.key}-pipeline-failed"

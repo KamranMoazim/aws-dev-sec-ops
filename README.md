@@ -30,6 +30,16 @@ git checkout -b release/0.2.0 develop && (cd app && npm version minor --no-git-t
 make tf-destroy ENV=prod && make tf-destroy ENV=staging
 ```
 
+## Infrastructure pipeline: plan, approval, apply
+
+![Infrastructure pipeline](docs/architecture/aws-infra-pipeline.png)
+
+A push to `develop` that touches `infra/**` runs `devsecops-infra`: fmt, validate and Checkov, then a
+plan with read-only credentials, an approval email showing the plan summary, and an apply of exactly
+that saved plan. It manages the workload environments listed in `infra_pipeline_environments`
+(dev by default). Bootstrap and shared, which holds the pipeline itself, are applied by hand. The plan
+stops while an app deployment is still in flight so it never rolls a release back.
+
 ## Observability and automatic rollback
 
 Each environment has CloudWatch alarms on target 5xx, unhealthy tasks and p99 latency, attached to the

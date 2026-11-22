@@ -97,7 +97,7 @@ resource "aws_codepipeline" "this" {
 
   artifact_store {
     type     = "S3"
-    location = aws_s3_bucket.artifacts.bucket
+    location = module.artifacts.bucket
 
     encryption_key {
       type = "KMS"

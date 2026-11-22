@@ -17,13 +17,13 @@ data "aws_iam_policy_document" "artifacts_access" {
   statement {
     sid       = "ArtifactObjects"
     actions   = ["s3:GetObject", "s3:GetObjectVersion", "s3:PutObject"]
-    resources = ["${aws_s3_bucket.artifacts.arn}/*"]
+    resources = ["${module.artifacts.arn}/*"]
   }
 
   statement {
     sid       = "ArtifactBucket"
     actions   = ["s3:GetBucketLocation", "s3:GetBucketVersioning", "s3:ListBucket"]
-    resources = [aws_s3_bucket.artifacts.arn]
+    resources = [module.artifacts.arn]
   }
 
   statement {

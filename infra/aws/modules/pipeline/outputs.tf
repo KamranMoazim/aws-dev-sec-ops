@@ -5,7 +5,7 @@ output "pipeline_name" {
 
 output "artifact_bucket" {
   description = "Artifact bucket name."
-  value       = aws_s3_bucket.artifacts.bucket
+  value       = module.artifacts.bucket
 }
 
 output "build_project_name" {
