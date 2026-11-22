@@ -1,0 +1,30 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DenyOutsideApprovedRegions",
+      "Effect": "Deny",
+      "NotAction": [
+        "account:*",
+        "budgets:*",
+        "ce:*",
+        "cloudfront:*",
+        "health:*",
+        "iam:*",
+        "kms:*",
+        "organizations:*",
+        "route53:*",
+        "route53domains:*",
+        "sts:*",
+        "support:*",
+        "waf:*"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringNotEquals": {
+          "aws:RequestedRegion": ["us-east-1"]
+        }
+      }
+    }
+  ]
+}
