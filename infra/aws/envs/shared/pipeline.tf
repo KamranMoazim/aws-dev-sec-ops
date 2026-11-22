@@ -35,7 +35,8 @@ locals {
 module "shared_kms" {
   source = "../../modules/secrets"
 
-  name = "${var.project}-shared"
+  name               = "${var.project}-shared"
+  publisher_services = ["codestar-notifications.amazonaws.com"]
 }
 
 resource "aws_codeconnections_connection" "github" {

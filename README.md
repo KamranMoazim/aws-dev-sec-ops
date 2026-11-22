@@ -30,6 +30,20 @@ git checkout -b release/0.2.0 develop && (cd app && npm version minor --no-git-t
 make tf-destroy ENV=prod && make tf-destroy ENV=staging
 ```
 
+## Observability and automatic rollback
+
+Each environment has CloudWatch alarms on target 5xx, unhealthy tasks and p99 latency, attached to the
+ECS service as deployment alarms: if one fires during a deployment (including the blue/green bake time),
+ECS rolls back to the previous revision. Alarms notify the environment's SNS alert topic, each
+environment has a dashboard (`devsecops-<env>`), and both pipelines email on a failed execution.
+Bake time must stay above the alarm detection time (about 3 minutes from first error to ALARM).
+
+Prove it with the drill, which deploys a revision that passes `/health` but returns 500 to users:
+
+```sh
+scripts/ops/rollback-drill.sh devsecops-staging hello-service https://staging.<zone>
+```
+
 ## Dev environment network
 
 ![Dev network](docs/architecture/aws-dev-network-ecs.png)

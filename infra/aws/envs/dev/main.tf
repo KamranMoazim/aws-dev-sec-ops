@@ -20,4 +20,5 @@ module "environment" {
   secret_recovery_window_days = var.secret_recovery_window_days
   db_instance_class           = var.db_instance_class
   teardown_friendly           = var.teardown_friendly
+  alert_emails                = var.alert_emails
 }

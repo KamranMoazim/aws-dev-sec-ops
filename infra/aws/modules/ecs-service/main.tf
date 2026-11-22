@@ -87,6 +87,12 @@ resource "aws_ecs_service" "this" {
     rollback = true
   }
 
+  alarms {
+    alarm_names = local.rollback_alarm_names
+    enable      = true
+    rollback    = true
+  }
+
   dynamic "deployment_configuration" {
     for_each = local.blue_green ? [1] : []
 

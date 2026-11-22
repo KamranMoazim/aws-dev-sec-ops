@@ -37,3 +37,8 @@ output "image_tag_parameter" {
   description = "SSM parameter holding the released image tag."
   value       = module.environment.image_tag_parameter
 }
+
+output "dashboard_name" {
+  description = "CloudWatch dashboard."
+  value       = module.environment.dashboard_name
+}
