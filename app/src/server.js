@@ -1,11 +1,16 @@
 const { createApp } = require('./app');
+const { SecretsManagerClient } = require('@aws-sdk/client-secrets-manager');
 const { createDb } = require('./db');
+const { createSecretPassword } = require('./secret-password');
 const { loadConfig } = require('./config');
 const logger = require('./logger');
 
 async function start() {
   const config = loadConfig();
-  const db = createDb(config.db);
+  const secretPassword = config.db.secretArn
+    ? createSecretPassword({ secretArn: config.db.secretArn, client: new SecretsManagerClient({}) })
+    : undefined;
+  const db = createDb(config.db, { secretPassword });
 
   try {
     await db.migrate();
