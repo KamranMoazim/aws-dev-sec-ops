@@ -58,6 +58,27 @@ data "aws_iam_policy_document" "key" {
       values   = ["arn:${local.partition}:logs:${local.region}:${local.account_id}:log-group:*"]
     }
   }
+
+  dynamic "statement" {
+    for_each = length(var.publisher_services) > 0 ? [1] : []
+
+    content {
+      sid       = "PublishToEncryptedTopics"
+      actions   = ["kms:GenerateDataKey*", "kms:Decrypt"]
+      resources = ["*"]
+
+      principals {
+        type        = "Service"
+        identifiers = var.publisher_services
+      }
+
+      condition {
+        test     = "StringEquals"
+        variable = "aws:SourceAccount"
+        values   = [local.account_id]
+      }
+    }
+  }
 }
 
 resource "aws_kms_key" "this" {

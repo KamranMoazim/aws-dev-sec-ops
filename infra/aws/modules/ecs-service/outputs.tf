@@ -42,3 +42,13 @@ output "alb_arn" {
   description = "Load balancer ARN, e.g. for a WAF association."
   value       = aws_lb.this.arn
 }
+
+output "alarm_names" {
+  description = "Alarms that roll back an in-flight deployment."
+  value       = local.rollback_alarm_names
+}
+
+output "alb_arn_suffix" {
+  description = "Load balancer ARN suffix for CloudWatch dimensions."
+  value       = aws_lb.this.arn_suffix
+}

@@ -12,3 +12,8 @@ output "build_project_name" {
   description = "Build CodeBuild project."
   value       = aws_codebuild_project.build.name
 }
+
+output "pipeline_arn" {
+  description = "CodePipeline ARN."
+  value       = aws_codepipeline.this.arn
+}

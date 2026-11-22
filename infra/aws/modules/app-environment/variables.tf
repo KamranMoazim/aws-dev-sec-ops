@@ -94,7 +94,7 @@ variable "deployment_strategy" {
 }
 
 variable "bake_time_minutes" {
-  description = "Blue/green bake time before the old revision is removed."
+  description = "Blue/green bake time before the old revision is removed; keep above alarm detection time (about 3 min)."
   type        = number
   default     = 5
 }
@@ -115,4 +115,16 @@ variable "teardown_friendly" {
   description = "Disable deletion protection and final snapshots so the env can be destroyed quickly."
   type        = bool
   default     = false
+}
+
+variable "alert_emails" {
+  description = "Emails subscribed to this environment's alarm notifications."
+  type        = list(string)
+  default     = []
+}
+
+variable "latency_p99_seconds" {
+  description = "p99 response time (seconds) that alarms and rolls back a deployment."
+  type        = number
+  default     = 1.5
 }

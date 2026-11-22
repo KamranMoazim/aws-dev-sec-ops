@@ -19,6 +19,7 @@ module "secrets" {
 
   name                        = local.name
   secret_recovery_window_days = var.secret_recovery_window_days
+  publisher_services          = ["cloudwatch.amazonaws.com"]
 }
 
 module "network" {
@@ -84,6 +85,8 @@ module "app" {
   deployment_strategy     = var.deployment_strategy
   bake_time_minutes       = var.bake_time_minutes
   test_listener_cidrs     = [module.network.vpc_cidr_block]
+  alarm_actions           = [aws_sns_topic.alerts.arn]
+  latency_p99_seconds     = var.latency_p99_seconds
 
   environment = {
     DB_HOST = module.rds.address

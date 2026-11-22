@@ -52,3 +52,13 @@ output "image_tag_parameter" {
   description = "SSM parameter holding the released image tag."
   value       = aws_ssm_parameter.image_tag.name
 }
+
+output "alerts_topic_arn" {
+  description = "SNS topic for this environment's alarms."
+  value       = aws_sns_topic.alerts.arn
+}
+
+output "dashboard_name" {
+  description = "CloudWatch dashboard for this environment."
+  value       = aws_cloudwatch_dashboard.this.dashboard_name
+}

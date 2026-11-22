@@ -20,3 +20,9 @@ variable "secret_recovery_window_days" {
   type        = number
   default     = 7
 }
+
+variable "publisher_services" {
+  description = "Service principals that publish to SNS topics encrypted with this key, e.g. cloudwatch.amazonaws.com."
+  type        = list(string)
+  default     = []
+}

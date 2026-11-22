@@ -85,3 +85,9 @@ variable "teardown_friendly" {
   type        = bool
   default     = false
 }
+
+variable "alert_emails" {
+  description = "Emails for alarm notifications. Set via TF_VAR_alert_emails."
+  type        = list(string)
+  default     = []
+}
