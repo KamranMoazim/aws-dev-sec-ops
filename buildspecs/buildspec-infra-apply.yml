@@ -12,4 +12,4 @@ phases:
     commands:
       - plan_dir_variable="CODEBUILD_SRC_DIR_plan_${ENVIRONMENT}"
       - cat "${!plan_dir_variable}/plan.txt"
-      - scripts/ci/terraform-apply.sh "$ENVIRONMENT" "${!plan_dir_variable}/tfplan"
+      - scripts/ci/terraform-apply.sh "$ENVIRONMENT" "${!plan_dir_variable}"

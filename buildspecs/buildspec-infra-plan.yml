@@ -13,7 +13,7 @@ phases:
     on-failure: ABORT
     commands:
       - scripts/ci/terraform-plan.sh "$ENVIRONMENT"
-      - mkdir -p plan-output && cp infra/aws/envs/"$ENVIRONMENT"/{tfplan,plan.txt} plan-output/
+      - mkdir -p plan-output && cp infra/aws/envs/"$ENVIRONMENT"/{tfplan,plan.txt,released-tag.txt} plan-output/
       - 'PLAN_SUMMARY="$ENVIRONMENT: $(cat infra/aws/envs/"$ENVIRONMENT"/plan-summary.txt)"'
 
 artifacts:
@@ -21,3 +21,4 @@ artifacts:
   files:
     - tfplan
     - plan.txt
+    - released-tag.txt

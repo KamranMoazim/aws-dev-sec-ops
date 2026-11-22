@@ -18,20 +18,22 @@ terraform_init_backend() {
     -backend-config="use_lockfile=true"
 }
 
-# A plan taken between an app deploy and its smoke test would point the service back at the old image.
-assert_no_app_deploy_in_flight() {
-  local root="$1" cluster service parameter released_tag running_task_definition running_image
+# Prints the released image tag of an app environment (empty for roots without an ECS service).
+# Fails while an app deployment is in flight: a plan or apply then would point the service at the old image.
+released_tag_when_idle() {
+  local root="$1" cluster service parameter released_tag deployments running_task_definition running_image
   cluster="$(terraform -chdir="$root" output -raw ecs_cluster_name 2>/dev/null)" || return 0
   service="$(terraform -chdir="$root" output -raw ecs_service_name)"
   parameter="$(terraform -chdir="$root" output -raw image_tag_parameter)"
   released_tag="$(aws ssm get-parameter --name "$parameter" --query Parameter.Value --output text)"
-  running_task_definition="$(aws ecs describe-services --cluster "$cluster" --services "$service" \
-    --query 'services[0].taskDefinition' --output text)"
+  read -r deployments running_task_definition < <(aws ecs describe-services --cluster "$cluster" --services "$service" \
+    --query 'services[0].[length(deployments[?rolloutState!=`COMPLETED`]), taskDefinition]' --output text)
   running_image="$(aws ecs describe-task-definition --task-definition "$running_task_definition" \
     --query 'taskDefinition.containerDefinitions[0].image' --output text)"
-  if [ "${running_image##*:}" != "$released_tag" ]; then
-    echo "App deployment in flight: $service runs ${running_image##*:} but the released tag is $released_tag."
-    echo "Re-run the infrastructure pipeline after the app pipeline finishes."
-    exit 1
+  if [ "$deployments" != "0" ] || [ "${running_image##*:}" != "$released_tag" ]; then
+    echo "App deployment in flight: $service runs ${running_image##*:}, released tag is $released_tag." >&2
+    echo "Re-run the infrastructure pipeline after the app pipeline finishes." >&2
+    return 1
   fi
+  echo "$released_tag"
 }

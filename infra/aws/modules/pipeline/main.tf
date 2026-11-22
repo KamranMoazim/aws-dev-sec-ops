@@ -121,6 +121,7 @@ resource "aws_codepipeline" "this" {
 
           content {
             includes = file_paths.value
+            excludes = length(var.trigger_file_path_excludes) > 0 ? var.trigger_file_path_excludes : null
           }
         }
       }

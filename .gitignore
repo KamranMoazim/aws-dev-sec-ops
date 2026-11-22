@@ -45,3 +45,4 @@ infra/aws/backend.hcl
 # Terraform pipeline plan output
 plan.txt
 plan-summary.txt
+released-tag.txt
