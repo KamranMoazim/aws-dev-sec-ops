@@ -87,6 +87,7 @@ describe('loadConfig', () => {
     expect(config.version).toBe(packageJson.version);
     expect(config.commit).toBe('local');
     expect(config.db.ssl).toBe(false);
+    expect(config.db.secretArn).toBeNull();
   });
 
   test('reads values from env', () => {
@@ -95,11 +96,13 @@ describe('loadConfig', () => {
       APP_COMMIT: 'abc1234',
       DB_HOST: 'db',
       DB_SSL: 'true',
+      DB_SECRET_ARN: 'arn:aws:secretsmanager:us-east-1:123456789012:secret:db',
     });
 
     expect(config.port).toBe(8080);
     expect(config.commit).toBe('abc1234');
     expect(config.db.host).toBe('db');
     expect(config.db.ssl).toEqual({ rejectUnauthorized: false });
+    expect(config.db.secretArn).toBe('arn:aws:secretsmanager:us-east-1:123456789012:secret:db');
   });
 });

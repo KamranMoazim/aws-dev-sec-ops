@@ -105,6 +105,12 @@ variable "secret_arns" {
   default     = []
 }
 
+variable "task_secret_arns" {
+  description = "Secret ARNs the running app may read itself (fetched at runtime, so rotations take effect)."
+  type        = list(string)
+  default     = []
+}
+
 variable "kms_key_arn" {
   description = "KMS key for the log group and secret decryption."
   type        = string
