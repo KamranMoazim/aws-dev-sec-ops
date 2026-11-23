@@ -15,7 +15,6 @@ The diagram above is the target multi-account design. The sections below show wh
 | Grafana, Prometheus, X-Ray, FireLens | CloudWatch alarms, dashboards and Container Insights |
 | SCPs on workload accounts | Documented in `docs/security/scp`, not attached (management account) |
 
-- Build plan and progress: [PLAN.md](PLAN.md)
 - Runbooks (release, rollback, infra change, secret rotation, teardown): [docs/runbooks/](docs/runbooks/)
 - Git branching and review rules: [docs/git-governance.md](docs/git-governance.md)
 - Architecture diagrams (ECS and EKS, draw.io sources included): [docs/architecture/](docs/architecture/)

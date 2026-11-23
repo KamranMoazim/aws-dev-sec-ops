@@ -46,3 +46,7 @@ infra/aws/backend.hcl
 plan.txt
 plan-summary.txt
 released-tag.txt
+
+# Personal working notes
+PLAN.md
+PROGRESS.md
