@@ -1,0 +1,9 @@
+version: 0.2
+
+phases:
+  build:
+    on-failure: ABORT
+    commands:
+      - scripts/ci/verify-ecs-deploy.sh "$ECS_CLUSTER" "$ECS_SERVICE" "$IMAGE_TAG"
+      - scripts/ci/smoke-test.sh "$APP_URL"
+      - aws ssm put-parameter --name "$IMAGE_TAG_PARAMETER" --value "$IMAGE_TAG" --type String --overwrite

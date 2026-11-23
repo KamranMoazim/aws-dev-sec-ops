@@ -1,0 +1,14 @@
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Generated, vendored and local-only paths"
+paths = [
+  '''(^|/)node_modules/''',
+  '''(^|/)\.terraform/''',
+  '''(^|/)\.tools/''',
+  '''(^|/)reports/''',
+  '''(^|/)coverage/''',
+  '''\.terraform\.lock\.hcl$''',
+  '''package-lock\.json$''',
+]
