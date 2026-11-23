@@ -4,9 +4,19 @@ Reference implementation of a DevSecOps delivery platform: Git governance, Terra
 Amazon ECS on Fargate, DevSecOps scanning, observability, approvals and rollback, built around a tiny
 Node.js sample app.
 
-![Architecture](docs/architecture/aws-devsecops-cicd-ecs.png)
+![Target architecture](docs/architecture/aws-devsecops-cicd-ecs.png)
+
+The diagram above is the target multi-account design. The sections below show what is built today.
+
+| Target | As built |
+|---|---|
+| Separate shared, dev, staging, prod and security accounts | One account; every root accepts `deploy_role_arn` to split later |
+| Terraform plan posted as a PR comment | Plan summary in the approval email, full plan in the build log |
+| Grafana, Prometheus, X-Ray, FireLens | CloudWatch alarms, dashboards and Container Insights |
+| SCPs on workload accounts | Documented in `docs/security/scp`, not attached (management account) |
 
 - Build plan and progress: [PLAN.md](PLAN.md)
+- Runbooks (release, rollback, infra change, secret rotation, teardown): [docs/runbooks/](docs/runbooks/)
 - Git branching and review rules: [docs/git-governance.md](docs/git-governance.md)
 - Architecture diagrams (ECS and EKS, draw.io sources included): [docs/architecture/](docs/architecture/)
 
