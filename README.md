@@ -90,3 +90,7 @@ buildspecs/   CodeBuild specs (Step 5)
 infra/aws/    Terraform bootstrap, modules and environments (Step 2+)
 docs/         architecture and runbooks
 ```
+
+## License
+
+[MIT](LICENSE)
