@@ -19,6 +19,7 @@ module "secrets" {
 
   name                        = local.name
   secret_recovery_window_days = var.secret_recovery_window_days
+  publisher_services          = ["cloudwatch.amazonaws.com"]
 }
 
 module "network" {
@@ -84,18 +85,22 @@ module "app" {
   deployment_strategy     = var.deployment_strategy
   bake_time_minutes       = var.bake_time_minutes
   test_listener_cidrs     = [module.network.vpc_cidr_block]
+  alarm_actions           = [aws_sns_topic.alerts.arn]
+  latency_p99_seconds     = var.latency_p99_seconds
 
   environment = {
     DB_HOST = module.rds.address
     DB_PORT = tostring(module.rds.port)
     DB_NAME = module.rds.database_name
     DB_SSL  = "true"
+    # The app reads the password at connect time; an injected value would go stale on rotation.
+    DB_SECRET_ARN = module.rds.master_user_secret_arn
   }
 
   secrets = {
-    DB_USER     = "${module.rds.master_user_secret_arn}:username::"
-    DB_PASSWORD = "${module.rds.master_user_secret_arn}:password::"
+    DB_USER = "${module.rds.master_user_secret_arn}:username::"
   }
 
-  secret_arns = [module.rds.master_user_secret_arn]
+  secret_arns      = [module.rds.master_user_secret_arn]
+  task_secret_arns = [module.rds.master_user_secret_arn]
 }

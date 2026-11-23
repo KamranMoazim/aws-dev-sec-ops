@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Usage: install-tools.sh [tool ...]   tools: trivy gitleaks semgrep checkov (default: all)
+# Usage: install-tools.sh [tool ...]   tools: trivy gitleaks semgrep checkov terraform (default: all scanners)
 # Installs pinned versions into $TOOLS_DIR (default .tools); release binaries are checksum-verified.
 set -euo pipefail
 
@@ -13,13 +13,13 @@ if [ ${#tools[@]} -eq 0 ]; then
 fi
 
 case "$(uname -s)" in
-  Linux) trivy_os="Linux"; gitleaks_os="linux" ;;
-  Darwin) trivy_os="macOS"; gitleaks_os="darwin" ;;
+  Linux) trivy_os="Linux"; gitleaks_os="linux"; terraform_os="linux" ;;
+  Darwin) trivy_os="macOS"; gitleaks_os="darwin"; terraform_os="darwin" ;;
   *) echo "Unsupported OS $(uname -s)"; exit 1 ;;
 esac
 case "$(uname -m)" in
-  x86_64 | amd64) trivy_arch="64bit"; gitleaks_arch="x64" ;;
-  arm64 | aarch64) trivy_arch="ARM64"; gitleaks_arch="arm64" ;;
+  x86_64 | amd64) trivy_arch="64bit"; gitleaks_arch="x64"; terraform_arch="amd64" ;;
+  arm64 | aarch64) trivy_arch="ARM64"; gitleaks_arch="arm64"; terraform_arch="arm64" ;;
   *) echo "Unsupported arch $(uname -m)"; exit 1 ;;
 esac
 
@@ -53,6 +53,19 @@ install_gitleaks() {
   rm -rf "$work_dir"
 }
 
+install_terraform() {
+  local work_dir asset base_url
+  work_dir="$(mktemp -d)"
+  asset="terraform_${TERRAFORM_VERSION}_${terraform_os}_${terraform_arch}.zip"
+  base_url="https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}"
+  curl -fsSL -o "$work_dir/$asset" "$base_url/$asset"
+  curl -fsSL -o "$work_dir/checksums.txt" "$base_url/terraform_${TERRAFORM_VERSION}_SHA256SUMS"
+  (cd "$work_dir" && grep " $asset\$" checksums.txt | shasum -a 256 -c -)
+  unzip -q -o "$work_dir/$asset" -d "$work_dir"
+  install -m 0755 "$work_dir/terraform" "$TOOLS_DIR/bin/terraform"
+  rm -rf "$work_dir"
+}
+
 # Each Python tool gets its own venv; semgrep and checkov pin conflicting dependencies.
 install_python_tool() {
   local name="$1" package="$2" venv="$TOOLS_DIR/venv-$1"
@@ -69,6 +82,7 @@ for tool in "${tools[@]}"; do
     gitleaks) install_gitleaks ;;
     semgrep) install_python_tool semgrep "semgrep==${SEMGREP_VERSION}" ;;
     checkov) install_python_tool checkov "checkov==${CHECKOV_VERSION}" ;;
+    terraform) install_terraform ;;
     *) echo "Unknown tool $tool"; exit 1 ;;
   esac
 done

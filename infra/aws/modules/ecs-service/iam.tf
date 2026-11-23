@@ -43,3 +43,23 @@ resource "aws_iam_role" "task" {
   name               = "${local.full_name}-task"
   assume_role_policy = data.aws_iam_policy_document.ecs_tasks_assume.json
 }
+
+data "aws_iam_policy_document" "task_secrets" {
+  statement {
+    actions   = ["secretsmanager:GetSecretValue"]
+    resources = var.task_secret_arns
+  }
+
+  statement {
+    actions   = ["kms:Decrypt"]
+    resources = [var.kms_key_arn]
+  }
+}
+
+resource "aws_iam_role_policy" "task_secrets" {
+  count = length(var.task_secret_arns) > 0 ? 1 : 0
+
+  name   = "read-runtime-secrets"
+  role   = aws_iam_role.task.id
+  policy = data.aws_iam_policy_document.task_secrets.json
+}

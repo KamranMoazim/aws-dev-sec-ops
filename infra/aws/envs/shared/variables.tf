@@ -80,3 +80,15 @@ variable "enable_inspector" {
   type        = bool
   default     = true
 }
+
+variable "alert_emails" {
+  description = "Emails notified when a pipeline fails. Set via TF_VAR_alert_emails."
+  type        = list(string)
+  default     = []
+}
+
+variable "infra_pipeline_environments" {
+  description = "Environment roots the infrastructure pipeline plans and applies. Staging and prod are created on demand, so only dev by default."
+  type        = list(string)
+  default     = ["dev"]
+}

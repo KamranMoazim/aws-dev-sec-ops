@@ -25,12 +25,12 @@ smoke:
 	curl -fsS localhost:3000/health && echo && curl -fsS localhost:3000/items && echo
 
 -include .env
-export TF_VAR_dns_zone_name TF_VAR_approval_emails
+export TF_VAR_dns_zone_name TF_VAR_approval_emails TF_VAR_alert_emails
 
 ENV ?= dev
 TF_DIR = infra/aws/envs/$(ENV)
 
-.PHONY: tf-init tf-plan tf-apply tf-destroy tf-check
+.PHONY: tf-init tf-plan tf-apply tf-destroy tf-check destroy-all
 
 tf-init:
 	terraform -chdir=$(TF_DIR) init -input=false -backend-config=../../backend.hcl
@@ -43,6 +43,14 @@ tf-apply:
 
 tf-destroy: tf-init
 	terraform -chdir=$(TF_DIR) destroy -input=false
+
+# Reverse dependency order; bootstrap holds the state and is removed by hand (docs/runbooks/teardown-and-rebuild.md).
+destroy-all:
+	@for env in prod staging dev security shared; do \
+		echo "==> destroy $$env"; \
+		$(MAKE) --no-print-directory tf-destroy ENV=$$env || exit 1; \
+	done
+	@echo "Bootstrap kept; see docs/runbooks/teardown-and-rebuild.md to remove it."
 
 tf-check:
 	terraform fmt -check -recursive infra

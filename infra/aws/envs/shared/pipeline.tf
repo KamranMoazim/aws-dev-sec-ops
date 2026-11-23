@@ -35,7 +35,8 @@ locals {
 module "shared_kms" {
   source = "../../modules/secrets"
 
-  name = "${var.project}-shared"
+  name               = "${var.project}-shared"
+  publisher_services = ["codestar-notifications.amazonaws.com"]
 }
 
 resource "aws_codeconnections_connection" "github" {
@@ -55,6 +56,9 @@ module "app_pipeline" {
   container_name     = var.app_name
   kms_key_arn        = module.shared_kms.kms_key_arn
   environments       = [local.environments.dev]
+
+  # Infra pipeline files would otherwise start an app deploy that races the Terraform apply.
+  trigger_file_path_excludes = ["buildspecs/buildspec-infra-*", "scripts/ci/terraform-*"]
 }
 
 resource "aws_sns_topic" "approvals" {

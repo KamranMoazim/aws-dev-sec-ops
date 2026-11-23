@@ -5,10 +5,15 @@ output "pipeline_name" {
 
 output "artifact_bucket" {
   description = "Artifact bucket name."
-  value       = aws_s3_bucket.artifacts.bucket
+  value       = module.artifacts.bucket
 }
 
 output "build_project_name" {
   description = "Build CodeBuild project."
   value       = aws_codebuild_project.build.name
+}
+
+output "pipeline_arn" {
+  description = "CodePipeline ARN."
+  value       = aws_codepipeline.this.arn
 }

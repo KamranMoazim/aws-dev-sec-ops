@@ -23,7 +23,8 @@ module "environment" {
   min_count                   = 2
   max_count                   = 4
   deployment_strategy         = "BLUE_GREEN"
-  bake_time_minutes           = 5
+  bake_time_minutes           = 10
   enable_waf                  = true
   teardown_friendly           = var.teardown_friendly
+  alert_emails                = var.alert_emails
 }

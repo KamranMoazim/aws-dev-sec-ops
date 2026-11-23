@@ -1,0 +1,15 @@
+version: 0.2
+
+env:
+  shell: bash
+
+phases:
+  install:
+    commands:
+      - scripts/security/install-tools.sh terraform
+  build:
+    on-failure: ABORT
+    commands:
+      - plan_dir_variable="CODEBUILD_SRC_DIR_plan_${ENVIRONMENT}"
+      - cat "${!plan_dir_variable}/plan.txt"
+      - scripts/ci/terraform-apply.sh "$ENVIRONMENT" "${!plan_dir_variable}"

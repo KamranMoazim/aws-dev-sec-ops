@@ -27,3 +27,8 @@ output "release_pipeline_name" {
   description = "Release pipeline: staging, approval, prod."
   value       = module.release_pipeline.pipeline_name
 }
+
+output "infra_pipeline_name" {
+  description = "Terraform pipeline: validate, plan, approval, apply."
+  value       = module.infra_pipeline.pipeline_name
+}

@@ -41,3 +41,8 @@ infra/aws/backend.hcl
 # Security tooling and scan output
 .tools/
 .tools-linux/
+
+# Terraform pipeline plan output
+plan.txt
+plan-summary.txt
+released-tag.txt

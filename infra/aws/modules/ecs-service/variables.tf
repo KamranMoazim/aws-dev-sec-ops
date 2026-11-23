@@ -105,6 +105,12 @@ variable "secret_arns" {
   default     = []
 }
 
+variable "task_secret_arns" {
+  description = "Secret ARNs the running app may read itself (fetched at runtime, so rotations take effect)."
+  type        = list(string)
+  default     = []
+}
+
 variable "kms_key_arn" {
   description = "KMS key for the log group and secret decryption."
   type        = string
@@ -146,7 +152,7 @@ variable "deployment_strategy" {
 }
 
 variable "bake_time_minutes" {
-  description = "Blue/green: minutes both revisions stay up after the traffic shift so a rollback is instant."
+  description = "Blue/green: minutes both revisions stay up after the shift. Keep above alarm detection time (about 3 min), or alarms fire too late to roll back."
   type        = number
   default     = 5
 }
@@ -161,4 +167,22 @@ variable "test_listener_cidrs" {
   description = "Blue/green: CIDRs allowed to reach the test listener; keep private."
   type        = list(string)
   default     = []
+}
+
+variable "alarm_actions" {
+  description = "SNS topics notified when a service alarm changes state."
+  type        = list(string)
+  default     = []
+}
+
+variable "error_5xx_threshold" {
+  description = "Target 5xx responses per minute that trigger the alarm and a deployment rollback."
+  type        = number
+  default     = 5
+}
+
+variable "latency_p99_seconds" {
+  description = "p99 target response time (seconds) that triggers the alarm after three minutes."
+  type        = number
+  default     = 1.5
 }

@@ -31,6 +31,12 @@ variable "trigger_file_paths" {
   default     = ["app/**", "buildspecs/**", "scripts/**"]
 }
 
+variable "trigger_file_path_excludes" {
+  description = "Changes only under these paths do not start the pipeline."
+  type        = list(string)
+  default     = []
+}
+
 variable "ecr_repository_url" {
   description = "Image repository URL."
   type        = string
